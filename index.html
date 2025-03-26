@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>移动直播推流</title>
+    <script
+      src="https://video.sdk.qcloudecdn.com/web/TXLivePusher-2.1.0.min.js"
+      charset="utf-8"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+        background-color: #f4f4f4;
+        padding: 15px;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.4rem;
+      }
+      #id_local_video {
+        width: 100%;
+        height: 50vh;
+        max-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #000;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .control-panel {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      button {
+        padding: 10px;
+        background-color: #2266dd;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.3s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      button:hover {
+        background-color: #1a5cbf;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      .status {
+        padding: 10px;
+        background-color: #f1f1f1;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        text-align: center;
+        font-size: 0.9rem;
+      }
+      .settings-panel {
+        background-color: white;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .settings-row {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+      }
+      .settings-row label {
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+        color: #666;
+      }
+      select,
+      input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        font-size: 0.9rem;
+      }
+      #applySettingsBtn {
+        width: 100%;
+        margin-top: 10px;
+      }
+      @media (max-width: 375px) {
+        .control-panel {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        #id_local_video {
+          height: 40vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>腾讯云移动直播推流</h1>
+
+    <!-- 本地视频预览 -->
+    <div id="id_local_video"></div>
+
+    <!-- 状态显示 -->
+    <div class="status" id="status">状态: 未初始化</div>
+
+    <!-- 控制按钮 -->
+    <div class="control-panel">
+      <button id="startPreviewBtn">开启预览</button>
+      <button id="stopPreviewBtn" disabled>停止预览</button>
+      <button id="startPushBtn" disabled>开始推流</button>
+      <button id="stopPushBtn" disabled>停止推流</button>
+      <button id="toggleMicBtn" disabled>静音麦克风</button>
+      <button id="toggleCameraBtn" disabled>关闭摄像头</button>
+      <button id="switchCameraBtn" disabled>切换摄像头</button>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="settings-panel">
+      <h3>推流设置</h3>
+      <div class="settings-row">
+        <label for="videoQuality">视频质量</label>
+        <select id="videoQuality">
+          <option value="360p">360p</option>
+          <option value="480p">480p</option>
+          <option value="720p" selected>720p</option>
+          <option value="1080p">1080p</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <label for="audioQuality">音频质量</label>
+        <select id="audioQuality">
+          <option value="standard" selected>标准</option>
+          <option value="high">高质量</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <label for="fps">帧率</label>
+        <select id="fps">
+          <option value="15">15 FPS</option>
+          <option value="20">20 FPS</option>
+          <option value="25" selected>25 FPS</option>
+          <option value="30">30 FPS</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <label for="pushUrl">推流地址</label>
+        <input
+          type="text"
+          id="pushUrl"
+          value="webrtc://211467.push.tlivecloud.com/live/demo?txSecret=138413f1927859eae0e160eb150c78ee&txTime=67E3B09D" />
+      </div>
+      <button id="applySettingsBtn">应用设置</button>
+    </div>
+
+    <script>
+      // 这里的JavaScript代码与原代码完全相同
+      // 为了保持功能一致性，直接复制原脚本内容
+      var livePusher = new TXLivePusher();
+
+      var startPreviewBtn = document.getElementById("startPreviewBtn");
+      var stopPreviewBtn = document.getElementById("stopPreviewBtn");
+      var startPushBtn = document.getElementById("startPushBtn");
+      var stopPushBtn = document.getElementById("stopPushBtn");
+      var toggleMicBtn = document.getElementById("toggleMicBtn");
+      var toggleCameraBtn = document.getElementById("toggleCameraBtn");
+      var switchCameraBtn = document.getElementById("switchCameraBtn");
+      var applySettingsBtn = document.getElementById("applySettingsBtn");
+      var statusElement = document.getElementById("status");
+
+      var isPreviewStarted = false;
+      var isPushStarted = false;
+      var isMicMuted = false;
+      var isCameraOff = false;
+
+      function updateStatus(message) {
+        statusElement.textContent = "状态: " + message;
+        console.log(message);
+      }
+
+      function initPusher() {
+        livePusher.setRenderView("id_local_video");
+        applySettings();
+        updateStatus("推流器已初始化");
+      }
+
+      function applySettings() {
+        var videoQuality = document.getElementById("videoQuality").value;
+        var audioQuality = document.getElementById("audioQuality").value;
+        var fps = document.getElementById("fps").value;
+
+        livePusher.setVideoQuality(videoQuality);
+        livePusher.setAudioQuality(audioQuality);
+        livePusher.setProperty("setVideoFPS", parseInt(fps));
+
+        updateStatus("已应用新设置");
+      }
+
+      function startPreview() {
+        updateStatus("正在启动预览...");
+
+        Promise.all([livePusher.startMicrophone(), livePusher.startCamera()])
+          .then(function () {
+            isPreviewStarted = true;
+            updateStatus("预览已启动");
+
+            startPreviewBtn.disabled = true;
+            stopPreviewBtn.disabled = false;
+            startPushBtn.disabled = false;
+            toggleMicBtn.disabled = false;
+            toggleCameraBtn.disabled = false;
+            switchCameraBtn.disabled = false;
+          })
+          .catch(function (error) {
+            updateStatus("启动预览失败: " + error.message);
+          });
+      }
+
+      function stopPreview() {
+        livePusher.stopCamera();
+        livePusher.stopMicrophone();
+
+        isPreviewStarted = false;
+        updateStatus("预览已停止");
+
+        startPreviewBtn.disabled = false;
+        stopPreviewBtn.disabled = true;
+        startPushBtn.disabled = true;
+        stopPushBtn.disabled = true;
+        toggleMicBtn.disabled = true;
+        toggleCameraBtn.disabled = true;
+        switchCameraBtn.disabled = true;
+
+        if (isPushStarted) {
+          stopPush();
+        }
+      }
+
+      function startPush() {
+        var pushUrl = document.getElementById("pushUrl").value;
+
+        if (!pushUrl) {
+          updateStatus("错误: 推流地址不能为空");
+          return;
+        }
+
+        updateStatus("正在开始推流...");
+
+        livePusher
+          .startPush(pushUrl)
+          .then(function () {
+            isPushStarted = true;
+            updateStatus("推流已开始");
+
+            startPushBtn.disabled = true;
+            stopPushBtn.disabled = false;
+          })
+          .catch(function (error) {
+            updateStatus("推流失败: " + error.message);
+          });
+      }
+
+      function stopPush() {
+        livePusher.stopPush();
+
+        isPushStarted = false;
+        updateStatus("推流已停止");
+
+        startPushBtn.disabled = false;
+        stopPushBtn.disabled = true;
+      }
+
+      function toggleMic() {
+        if (isMicMuted) {
+          livePusher.pauseAudio();
+          isMicMuted = false;
+          toggleMicBtn.textContent = "静音麦克风";
+          updateStatus("麦克风已开启");
+        } else {
+          livePusher.resumeAudio();
+          isMicMuted = true;
+          toggleMicBtn.textContent = "取消静音";
+          updateStatus("麦克风已静音");
+        }
+      }
+
+      function toggleCamera() {
+        if (isCameraOff) {
+          livePusher.resumeVideo();
+          isCameraOff = false;
+          toggleCameraBtn.textContent = "关闭摄像头";
+          updateStatus("摄像头已开启");
+        } else {
+          livePusher.pauseVideo();
+          isCameraOff = true;
+          toggleCameraBtn.textContent = "开启摄像头";
+          updateStatus("摄像头已关闭");
+        }
+      }
+
+      function switchCamera() {
+        const deviceManager = livePusher.getDeviceManager();
+        deviceManager
+          .switchCamera()
+          .then(function () {
+            updateStatus("已切换摄像头");
+          })
+          .catch(function (error) {
+            updateStatus("切换摄像头失败: " + error.message);
+          });
+      }
+
+      startPreviewBtn.addEventListener("click", startPreview);
+      stopPreviewBtn.addEventListener("click", stopPreview);
+      startPushBtn.addEventListener("click", startPush);
+      stopPushBtn.addEventListener("click", stopPush);
+      toggleMicBtn.addEventListener("click", toggleMic);
+      toggleCameraBtn.addEventListener("click", toggleCamera);
+      switchCameraBtn.addEventListener("click", switchCamera);
+      applySettingsBtn.addEventListener("click", applySettings);
+
+      initPusher();
+
+      livePusher.setObserver({
+        onPushStatusUpdate: (status, msg) => {
+          if (status === 0) {
+            updateStatus("推流已断开");
+            isPushStarted = false;
+            startPushBtn.disabled = false;
+            stopPushBtn.disabled = true;
+          }
+          if (status === 2) {
+            updateStatus("推流已连接成功");
+          }
+        },
+        onError: (status, msg) => {
+          updateStatus("错误: " + msg);
+        },
+      });
+    </script>
+  </body>
+</html>
